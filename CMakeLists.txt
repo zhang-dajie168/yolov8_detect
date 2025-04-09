@@ -1,18 +1,19 @@
-# 设置最低版本号
-cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
-# 设置项目名称
-project(rk3588-demo VERSION 0.0.1 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.10)
 
-# 输出系统信息
-message(STATUS "System: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
+project(yolov8_detect)
 
-# 设置编译器
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 设置库架构
+
+#  设置库架构
 set(LIB_ARCH "aarch64")
 set(DEVICE_NAME "RK3588")
+
+# 寻找Eigen3
+set(EIGEN_VERSION 3.3)
+find_package(Eigen3 ${EIGEN_VERSION} QUIET)
+
 
 #  rknn_api 文件夹路径
 set(RKNN_API_PATH ${CMAKE_CURRENT_SOURCE_DIR}/librknn_api)
@@ -23,52 +24,34 @@ set(RKNN_API_LIB_PATH ${RKNN_API_PATH}/${LIB_ARCH}/librknnrt.so)
 
 # 寻找OpenCV库，使用自定义的OpenCV_DIR
 find_package(OpenCV REQUIRED)
+
 # 输出OpenCV信息
 message(STATUS "include path: ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "${OpenCV_VERSION}")
 
-# 寻找Eigen3
-set(EIGEN_VERSION 3.3)
-find_package(Eigen3 ${EIGEN_VERSION} QUIET)
+# 查找依赖
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(vision_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(CURL REQUIRED)
+find_package(message_filters REQUIRED)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+
 
 # 用来搜索头文件的目录
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
     ${RKNN_API_INCLUDE_PATH}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+    ${YOLO_API_INCLUDE_PATH}
 )
 
-# 构建预处理和后处理库
-add_library(nn_process SHARED
-            src/process/preprocess.cpp
-            src/process/postprocess.cpp
-)
-# 链接库
-target_link_libraries(nn_process
-    ${OpenCV_LIBS}
-)
-
-# 构建自定义封装API库
-add_library(rknn_engine SHARED src/engine/rknn_engine.cpp) 
-# 链接库
-target_link_libraries(rknn_engine
-    ${RKNN_API_LIB_PATH}
-)
-# yolov8_lib
-add_library(yolov8_lib SHARED src/task/yolov8.cpp)
-# 链接库
-target_link_libraries(yolov8_lib
-    rknn_engine
-    nn_process
-)
-
-# draw_lib
-add_library(draw_lib SHARED src/draw/cv_draw.cpp)
-# 链接库
-target_link_libraries(draw_lib
-    ${OpenCV_LIBS}
-)
 
 # bytetrack_lib
 add_library(bytetrack_lib SHARED
@@ -81,13 +64,59 @@ add_library(bytetrack_lib SHARED
 
 target_link_libraries(bytetrack_lib Eigen3::Eigen)
 
-
 # 测试yolov8_video_track
-add_executable(yolov8_video_track src/yolov8_video_track.cpp)
-
-# 链接库
-target_link_libraries(yolov8_video_track
-        draw_lib
-        yolov8_lib
-        bytetrack_lib
+add_executable(yolov8_track_depth_node
+src/yolov8_track_depth_node.cpp
+src/utils/yolov8.cc
+src/utils/file_utils.c
+src/utils/image_drawing.c
+src/utils/image_utils.c
+src/utils/postprocess.cc
+src/utils/encode_frame.cc
 )
+
+ament_target_dependencies(yolov8_track_depth_node
+   rclcpp
+   sensor_msgs
+   cv_bridge
+   vision_msgs
+   image_transport
+   geometry_msgs
+   message_filters
+)
+target_link_libraries(yolov8_track_depth_node 
+ m
+  rknnrt
+  turbojpeg
+  rga
+  bytetrack_lib
+  ${CURL_LIBRARIES}
+  ${OpenCV_LIBS}
+  )
+
+
+install(TARGETS yolov8_track_depth_node
+bytetrack_lib
+  DESTINATION lib/${PROJECT_NAME}
+)
+#install(DIRECTORY include/
+#  DESTINATION include
+#)
+
+install(TARGETS yolov8_track_depth_node
+  DESTINATION lib/${PROJECT_NAME})
+ 
+install(DIRECTORY include lib
+  DESTINATION share/${PROJECT_NAME}
+)
+ install(DIRECTORY launch
+      DESTINATION share/${PROJECT_NAME}/launch
+ )
+ 
+ install(DIRECTORY model/
+  DESTINATION share/${PROJECT_NAME}/model
+)
+ 
+ 
+  
+ament_package()
