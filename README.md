@@ -1,4 +1,4 @@
-
+修改文件夹名称yolov8_detect
 cd ros2_ws/
 
 clocon build --packages-select yolov8_detect
