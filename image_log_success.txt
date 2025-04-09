@@ -1,0 +1,38 @@
+(base) root@fiido:~/yolov8_detect# ./build/yolov8_detect ./model/yolov8.rknn ./model/person.jpg 
+load lable ./model/coco_80_labels_list.txt
+model input num: 1, output num: 9
+input tensors:
+  index=0, name=images, n_dims=4, dims=[1, 640, 640, 3], n_elems=1228800, size=1228800, fmt=NHWC, type=INT8, qnt_type=AFFINE, zp=-128, scale=0.003922
+output tensors:
+  index=0, name=318, n_dims=4, dims=[1, 64, 80, 80], n_elems=409600, size=409600, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-58, scale=0.117659
+  index=1, name=onnx::ReduceSum_326, n_dims=4, dims=[1, 80, 80, 80], n_elems=512000, size=512000, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-128, scale=0.003104
+  index=2, name=331, n_dims=4, dims=[1, 1, 80, 80], n_elems=6400, size=6400, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-128, scale=0.003173
+  index=3, name=338, n_dims=4, dims=[1, 64, 40, 40], n_elems=102400, size=102400, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-45, scale=0.093747
+  index=4, name=onnx::ReduceSum_346, n_dims=4, dims=[1, 80, 40, 40], n_elems=128000, size=128000, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-128, scale=0.003594
+  index=5, name=350, n_dims=4, dims=[1, 1, 40, 40], n_elems=1600, size=1600, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-128, scale=0.003627
+  index=6, name=357, n_dims=4, dims=[1, 64, 20, 20], n_elems=25600, size=25600, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-34, scale=0.083036
+  index=7, name=onnx::ReduceSum_365, n_dims=4, dims=[1, 80, 20, 20], n_elems=32000, size=32000, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-128, scale=0.003874
+  index=8, name=369, n_dims=4, dims=[1, 1, 20, 20], n_elems=400, size=400, fmt=NCHW, type=INT8, qnt_type=AFFINE, zp=-128, scale=0.003922
+model is NHWC input fmt
+model input height=640, width=640, channel=3
+origin size=319x452 crop size=304x448
+input image: 319 x 452, subsampling: 4:2:0, colorspace: YCbCr, orientation: 1
+src_image.width:319
+src_image.height:452
+src_image.format:1
+src_image.size:432564
+src_image.virt_addr:-2002829424
+scale=1.415929 dst_box=(96 0 543 639) allow_slight_change=1 _left_offset=96 _top_offset=0 padding_w=192 padding_h=0
+src width is not 4/16-aligned, convert image use cpu
+finish
+rknn_run
+rknn_run time=24.86ms, FPS = 40.23
+post_process time=2.42ms, FPS = 413.22
+person @ (62 65 245 444) 0.945
+tie @ (158 165 174 261) 0.748
+write_image path: out.png width=319 height=452 channel=3 data=0x55889f3f90
+
+
+
+
+
